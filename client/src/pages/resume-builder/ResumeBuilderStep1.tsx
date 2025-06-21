@@ -9,26 +9,68 @@ import { Upload, Link as LinkIcon } from "lucide-react";
 
 const ResumeBuilderStep1 = () => {
   const [useUpload, setUseUpload] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [useLinkedIn, setUseLinkedIn] = useState(false);
   const [useManual, setUseManual] = useState(false);
   const [linkedInUrl, setLinkedInUrl] = useState("");
   const navigate = useNavigate();
 
-  const canContinue = useUpload || useLinkedIn || useManual;
+  const isUploadSelectedAndReady = useUpload && resumeFile !== null;
+  const isLinkedInSelectedAndReady = useLinkedIn && linkedInUrl.trim() !== "";
+  const canContinue = isUploadSelectedAndReady || isLinkedInSelectedAndReady || useManual;
 
-  const handleContinue = () => {
-    // For now, if manual is selected, we go to the manual form.
-    // This can be expanded later to handle other flows.
-    if (useManual) {
-      navigate("/resume-builder/manual-form");
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setResumeFile(event.target.files[0]);
     } else {
-      // Placeholder for other flows
-      console.log({
-        useUpload,
-        useLinkedIn,
-        linkedInUrl,
-      });
-      alert("Flow for Upload or LinkedIn not implemented yet.");
+      setResumeFile(null);
+    }
+  };
+
+  const handleContinue = async () => {
+    let isDataProcessed = false;
+
+    if (isUploadSelectedAndReady) {
+      const formData = new FormData();
+      formData.append("resume", resumeFile);
+
+      try {
+        const response = await fetch("http://localhost:8000/resume/process", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          isDataProcessed = true;
+          const result = await response.json();
+          console.log("Resume processing response:", result);
+          // In a real app, you'd store the parsed data to pass to the next step
+        } else {
+          alert("Failed to upload resume. Please try again.");
+          return; // Stop flow if upload fails
+        }
+      } catch (error) {
+        alert("An error occurred while uploading the resume.");
+        console.error("Error uploading resume:", error);
+        return; // Stop flow on network error
+      }
+    }
+
+    if (isLinkedInSelectedAndReady) {
+      isDataProcessed = true;
+      // Placeholder for LinkedIn scraping logic
+      console.log("LinkedIn scraping not implemented yet for URL:", linkedInUrl);
+      alert("LinkedIn processing is not yet implemented, but we would handle it here.");
+    }
+
+    if (useManual) {
+      // If manual is selected, always go to the form.
+      // In the future, we could pass the processed data here as state.
+      navigate("/resume-builder/manual-form");
+    } else if (isDataProcessed) {
+      // If data was processed but we are not going to the manual form,
+      // navigate to a review step (which is not yet created).
+      alert("Resume data processed. A review step would come next.");
     }
   };
 
@@ -56,14 +98,19 @@ const ResumeBuilderStep1 = () => {
                   Upload an existing resume
                 </Label>
                 <p className="text-gray-500">
-                  We'll parse your PDF or DOCX file to get you started.
+                  We'll parse your PDF file to get you started.
                 </p>
                 {useUpload && (
                   <div className="mt-4">
-                    <Button variant="outline" className="w-full">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Choose File (Not implemented)
-                    </Button>
+                    <Input id="resume-file" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                    <Label htmlFor="resume-file" className="cursor-pointer">
+                      <Button variant="outline" className="w-full" asChild>
+                        <div>
+                          <Upload className="mr-2 h-4 w-4" />
+                          {resumeFile ? resumeFile.name : "Choose File"}
+                        </div>
+                      </Button>
+                    </Label>
                   </div>
                 )}
               </div>
