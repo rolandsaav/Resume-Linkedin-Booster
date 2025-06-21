@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,17 +12,24 @@ const ResumeBuilderStep1 = () => {
   const [useLinkedIn, setUseLinkedIn] = useState(false);
   const [useManual, setUseManual] = useState(false);
   const [linkedInUrl, setLinkedInUrl] = useState("");
+  const navigate = useNavigate();
 
   const canContinue = useUpload || useLinkedIn || useManual;
 
   const handleContinue = () => {
-    // Navigate to the next step, for now just log the state
-    console.log({
-      useUpload,
-      useLinkedIn,
-      linkedInUrl,
-      useManual,
-    });
+    // For now, if manual is selected, we go to the manual form.
+    // This can be expanded later to handle other flows.
+    if (useManual) {
+      navigate("/resume-builder/manual-form");
+    } else {
+      // Placeholder for other flows
+      console.log({
+        useUpload,
+        useLinkedIn,
+        linkedInUrl,
+      });
+      alert("Flow for Upload or LinkedIn not implemented yet.");
+    }
   };
 
   return (
