@@ -27,8 +27,8 @@ async def save_resume(
         if not text.strip():
             raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
 
-        llm = ChatOpenAI(model="gpt-4", temperature=0)
-        structured_llm = llm.with_structured_output(ManualResumeData)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        structured_llm = llm.with_structured_output(ManualResumeData, method="json_schema")
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are an expert resume parser. Your task is to extract information from the provided resume text and structure it into a JSON object that matches the provided schema. Pay close attention to the descriptions and formats required for each field."),
             ("human", "Please extract the information from the following resume text:\n\n---\n\n{resume_text}")
