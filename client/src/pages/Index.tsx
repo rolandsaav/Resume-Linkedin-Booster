@@ -36,7 +36,7 @@ const Index = () => {
       <header className="container mx-auto px-6 py-6">
         <nav className="flex items-center justify-between">
           <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ResumeAI Pro
+            Career Alchemy
           </div>
           <div className="hidden md:flex space-x-6">
             <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
@@ -54,15 +54,15 @@ const Index = () => {
           </Badge>
           
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Land Your Dream Job at
+            Turn Your Experience Into
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
-              Top Tech Companies
+              Your Dream Job
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Transform your old resume and LinkedIn profile into career-changing assets. 
-            Our AI-powered platform creates resumes, profiles, and portfolios that get you hired at FAANG and elite firms.
+            Transform your resume, LinkedIn, and portfolio into powerful assets. 
+            Our AI-powered platform helps you stand out and get hired at elite firms.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -138,7 +138,7 @@ const Index = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                quote: "Landed a Staff Engineer role at Google after using ResumeAI Pro. The optimization was incredible!",
+                quote: "Landed a Staff Engineer role at Google after using Career Alchemy. The optimization was incredible!",
                 name: "Sarah Chen",
                 role: "Staff Engineer at Google",
                 company: "Google"
@@ -195,7 +195,7 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
-                ResumeAI Pro
+                Career Alchemy
               </div>
               <p className="text-gray-400">
                 Empowering careers through AI-powered resume and profile optimization.
@@ -227,7 +227,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 ResumeAI Pro. All rights reserved.</p>
+            <p>&copy; 2024 Career Alchemy. All rights reserved.</p>
           </div>
         </div>
       </footer>

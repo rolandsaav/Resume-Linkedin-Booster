@@ -23,7 +23,7 @@ const MainLayout = () => {
       <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/get-started" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ResumeAI Pro
+            Career Alchemy
           </Link>
           <div className="flex items-center gap-4">
             {user && (
