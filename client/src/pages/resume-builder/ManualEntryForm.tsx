@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useSession } from "@/context/SessionContext";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,21 +22,17 @@ const Section = ({ title, description, children }) => (
 );
 
 const ManualEntryForm = () => {
+  const { sessionId } = useSession();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    contact: {
-      fullName: "",
-      email: "",
-      phone: "",
-      location: "",
-      linkedinUrl: "",
-      websiteUrl: "",
-    },
+    contact: { fullName: "", email: "", phone: "", location: "", linkedinUrl: "", websiteUrl: "" },
     summary: "",
     experience: [{ id: uuidv4(), jobTitle: "", companyName: "", location: "", startDate: "", endDate: "", description: "" }],
     projects: [{ id: uuidv4(), projectName: "", tools: "", description: "" }],
     education: [{ id: uuidv4(), schoolName: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", honors: "" }],
     skills: [],
   });
+
   const [skillInput, setSkillInput] = useState("");
 
   const handleContactChange = (e) => {
@@ -84,31 +82,26 @@ const ManualEntryForm = () => {
     setFormData(prev => ({ ...prev, skills: prev.skills.filter(skill => skill !== skillToRemove) }));
   };
 
-  const handleSubmit = async () => {
-    console.log("Submitting Form Data:", formData);
-    
-    try {
-      const response = await fetch("http://localhost:8000/resume/save-manual-form", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log("Server response:", result);
-        toast.success("Your resume data has been saved! Next, we would show a preview.");
-        // Navigate to next step (e.g., preview)
-      } else {
+  const handleSubmit = () => {
+    // Fire-and-forget the submission
+    fetch("http://localhost:8000/save/manual", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, data: formData }),
+    })
+    .then(async response => {
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
         toast.error(`Error: ${result.detail || "Failed to save form data."}`);
       }
-    } catch (error) {
+    })
+    .catch(() => {
       toast.error("An error occurred while saving the form.");
-      console.error("Error saving form:", error);
-    }
+    });
+
+    // Navigate immediately
+    toast.success("Your resume data has been submitted!");
+    navigate("/resume-builder/in-progress");
   };
 
   return (

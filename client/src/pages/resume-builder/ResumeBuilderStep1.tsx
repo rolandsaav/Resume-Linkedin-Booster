@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "@/context/SessionContext";
 
 const ResumeBuilderStep1 = () => {
+  const { sessionId } = useSession();
   const [useUpload, setUseUpload] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [useLinkedIn, setUseLinkedIn] = useState(false);
@@ -33,47 +35,35 @@ const ResumeBuilderStep1 = () => {
     }
   };
 
-  const handleContinue = async () => {
-    const formData = new FormData();
-    let isDataReadyToSend = false;
-
+  const handleContinue = () => {
+    // Fire off submissions in the background without waiting for them.
     if (isUploadSelectedAndReady) {
-      formData.append("resume", resumeFile);
-      isDataReadyToSend = true;
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
+      if (resumeFile) formData.append("resume", resumeFile);
+      fetch("http://localhost:8000/save/resume", { method: "POST", body: formData })
+        .then(res => {
+          if(!res.ok) toast.error("Failed to submit resume file.");
+        })
+        .catch(() => toast.error("An error occurred submitting the resume file."));
     }
 
     if (isLinkedInSelectedAndReady) {
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
       formData.append("linkedin_url", linkedInUrl);
-      isDataReadyToSend = true;
+      fetch("http://localhost:8000/save/linkedin", { method: "POST", body: formData })
+        .then(res => {
+          if(!res.ok) toast.error("Failed to submit LinkedIn URL.");
+        })
+        .catch(() => toast.error("An error occurred submitting the LinkedIn URL."));
     }
 
-    if (isDataReadyToSend) {
-      try {
-        const response = await fetch("http://localhost:8000/resume/process", {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          console.log("Processing response:", result);
-          toast.success("Data sent for processing! A review step will come next.");
-        } else {
-          toast.error(`Error: ${result.detail || "Failed to send data."}`);
-          return; 
-        }
-      } catch (error) {
-        toast.error("An error occurred while sending data.");
-        console.error("Error sending data:", error);
-        return;
-      }
-    }
-
+    // Navigate immediately based on user's choice.
     if (useManual) {
-      // If manual is selected, always go to the form.
-      // In the future, we could pass the processed data here as state.
       navigate("/resume-builder/manual-form");
+    } else {
+      navigate("/resume-builder/in-progress");
     }
   };
 
