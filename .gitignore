@@ -41,3 +41,9 @@ pids
 *.nav
 *.snm
 *.vrb
+
+# Python
+/server/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
