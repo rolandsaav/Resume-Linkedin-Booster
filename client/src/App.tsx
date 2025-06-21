@@ -9,7 +9,11 @@ import GetStarted from "./pages/GetStarted";
 import ResumeBuilderStep1 from "./pages/resume-builder/ResumeBuilderStep1";
 import ManualEntryForm from "./pages/resume-builder/ManualEntryForm";
 import ResumeInProgress from "./pages/resume-builder/ResumeInProgress";
+import AuthPage from "@/pages/Auth";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import MainLayout from "@/components/MainLayout";
 import { SessionProvider } from "./context/SessionContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -21,28 +25,37 @@ const ResumeBuilderLayout = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          
-          {/* Resume Builder Flow */}
-          <Route path="/resume-builder" element={<ResumeBuilderLayout />}>
-            <Route index element={<ResumeBuilderStep1 />} />
-            <Route path="manual-form" element={<ManualEntryForm />} />
-            <Route path="in-progress" element={<ResumeInProgress />} />
-          </Route>
+  <AuthProvider>
+    <SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-center" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<AuthPage />} />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<MainLayout />}>
+                  <Route path="/get-started" element={<GetStarted />} />
+                  <Route path="/resume-builder" element={<ResumeBuilderLayout />}>
+                    <Route index element={<ResumeBuilderStep1 />} />
+                    <Route path="manual-form" element={<ManualEntryForm />} />
+                    <Route path="in-progress" element={<ResumeInProgress />} />
+                  </Route>
+                </Route>
+              </Route>
+
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </SessionProvider>
+  </AuthProvider>
 );
 
 export default App;
