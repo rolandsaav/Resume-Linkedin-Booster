@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Link as LinkIcon } from "lucide-react";
+import { toast } from "sonner";
 
 const ResumeBuilderStep1 = () => {
   const [useUpload, setUseUpload] = useState(false);
@@ -13,11 +14,16 @@ const ResumeBuilderStep1 = () => {
   const [useLinkedIn, setUseLinkedIn] = useState(false);
   const [useManual, setUseManual] = useState(false);
   const [linkedInUrl, setLinkedInUrl] = useState("");
+  const [isLinkedInTouched, setIsLinkedInTouched] = useState(false);
   const navigate = useNavigate();
 
+  const linkedInRegex = /^https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/;
+  const isLinkedInValid = linkedInUrl.trim() === "" || linkedInRegex.test(linkedInUrl.trim());
+
   const isUploadSelectedAndReady = useUpload && resumeFile !== null;
-  const isLinkedInSelectedAndReady = useLinkedIn && linkedInUrl.trim() !== "";
+  const isLinkedInSelectedAndReady = useLinkedIn && linkedInUrl.trim() !== "" && isLinkedInValid;
   const canContinue = isUploadSelectedAndReady || isLinkedInSelectedAndReady || useManual;
+  const showLinkedInError = useLinkedIn && isLinkedInTouched && !isLinkedInValid;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -28,49 +34,46 @@ const ResumeBuilderStep1 = () => {
   };
 
   const handleContinue = async () => {
-    let isDataProcessed = false;
+    const formData = new FormData();
+    let isDataReadyToSend = false;
 
     if (isUploadSelectedAndReady) {
-      const formData = new FormData();
       formData.append("resume", resumeFile);
+      isDataReadyToSend = true;
+    }
 
+    if (isLinkedInSelectedAndReady) {
+      formData.append("linkedin_url", linkedInUrl);
+      isDataReadyToSend = true;
+    }
+
+    if (isDataReadyToSend) {
       try {
         const response = await fetch("http://localhost:8000/resume/process", {
           method: "POST",
           body: formData,
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-          isDataProcessed = true;
-          const result = await response.json();
-          console.log("Resume processing response:", result);
-          // In a real app, you'd store the parsed data to pass to the next step
+          console.log("Processing response:", result);
+          toast.success("Data sent for processing! A review step will come next.");
         } else {
-          alert("Failed to upload resume. Please try again.");
-          return; // Stop flow if upload fails
+          toast.error(`Error: ${result.detail || "Failed to send data."}`);
+          return; 
         }
       } catch (error) {
-        alert("An error occurred while uploading the resume.");
-        console.error("Error uploading resume:", error);
-        return; // Stop flow on network error
+        toast.error("An error occurred while sending data.");
+        console.error("Error sending data:", error);
+        return;
       }
-    }
-
-    if (isLinkedInSelectedAndReady) {
-      isDataProcessed = true;
-      // Placeholder for LinkedIn scraping logic
-      console.log("LinkedIn scraping not implemented yet for URL:", linkedInUrl);
-      alert("LinkedIn processing is not yet implemented, but we would handle it here.");
     }
 
     if (useManual) {
       // If manual is selected, always go to the form.
       // In the future, we could pass the processed data here as state.
       navigate("/resume-builder/manual-form");
-    } else if (isDataProcessed) {
-      // If data was processed but we are not going to the manual form,
-      // navigate to a review step (which is not yet created).
-      alert("Resume data processed. A review step would come next.");
     }
   };
 
@@ -139,8 +142,12 @@ const ResumeBuilderStep1 = () => {
                       placeholder="https://www.linkedin.com/in/your-profile"
                       value={linkedInUrl}
                       onChange={(e) => setLinkedInUrl(e.target.value)}
-                      className="pl-10"
+                      onBlur={() => setIsLinkedInTouched(true)}
+                      className={`pl-10 ${showLinkedInError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     />
+                    {showLinkedInError && (
+                      <p className="text-red-600 text-sm mt-2">Please enter a valid LinkedIn profile URL.</p>
+                    )}
                   </div>
                 )}
               </div>

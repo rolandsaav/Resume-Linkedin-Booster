@@ -1,6 +1,48 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
+
+# Pydantic Models for Manual Form Data
+class Contact(BaseModel):
+    fullName: str
+    email: str
+    phone: str
+    location: str
+    linkedinUrl: Optional[str] = None
+    websiteUrl: Optional[str] = None
+
+class Experience(BaseModel):
+    id: str
+    jobTitle: str
+    companyName: str
+    location: str
+    startDate: str
+    endDate: str
+    description: str
+
+class Project(BaseModel):
+    id: str
+    projectName: str
+    tools: str
+    description: str
+
+class Education(BaseModel):
+    id: str
+    schoolName: str
+    degree: str
+    fieldOfStudy: str
+    startDate: str
+    endDate: str
+    honors: Optional[str] = None
+
+class ManualResumeData(BaseModel):
+    contact: Contact
+    summary: str
+    experience: List[Experience]
+    projects: List[Project]
+    education: List[Education]
+    skills: List[str]
 
 app = FastAPI()
 
@@ -23,13 +65,33 @@ def read_root():
     return {"Hello": "World"}
 
 @app.post("/resume/process")
-async def process_resume(resume: UploadFile = File(...)):
-    if resume.content_type != "application/pdf":
+async def process_resume(
+    resume: Optional[UploadFile] = File(None),
+    linkedin_url: Optional[str] = Form(None)
+):
+    if not resume and not linkedin_url:
+        raise HTTPException(status_code=400, detail="Please provide a resume file or a LinkedIn URL.")
+
+    if resume and resume.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF.")
-    # In a real application, you would add your resume parsing logic here.
-    # For now, we'll just confirm the file was received.
-    return {
-        "filename": resume.filename,
-        "content_type": resume.content_type,
-        "message": "Resume received successfully. Parsing logic not yet implemented.",
-    } 
+
+    # In a real app, you would parse the PDF and scrape the URL here.
+    # For now, we'll just confirm what was received.
+    
+    response_data = {
+        "message": "Inputs received successfully. Parsing and scraping not yet implemented.",
+        "inputs_received": {
+            "resume_filename": resume.filename if resume else None,
+            "linkedin_url": linkedin_url if linkedin_url else None,
+        }
+    }
+    
+    return response_data 
+
+@app.post("/resume/save-manual-form")
+async def save_manual_form(data: ManualResumeData):
+    # For now, we'll just print the received data to the console
+    # In a real app, you would save this to a database
+    print("Received manual form data:")
+    print(data.model_dump_json(indent=2))
+    return {"message": "Manual form data received successfully!", "data": data} 

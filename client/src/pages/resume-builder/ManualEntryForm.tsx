@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PlusCircle, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from "sonner";
 
 // Sub-components for repeatable sections would be ideal, but for now, all in one file.
 
@@ -83,9 +84,31 @@ const ManualEntryForm = () => {
     setFormData(prev => ({ ...prev, skills: prev.skills.filter(skill => skill !== skillToRemove) }));
   };
 
-  const handleSubmit = () => {
-    console.log("Form Data:", formData);
-    // Proceed to next step
+  const handleSubmit = async () => {
+    console.log("Submitting Form Data:", formData);
+    
+    try {
+      const response = await fetch("http://localhost:8000/resume/save-manual-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("Server response:", result);
+        toast.success("Your resume data has been saved! Next, we would show a preview.");
+        // Navigate to next step (e.g., preview)
+      } else {
+        toast.error(`Error: ${result.detail || "Failed to save form data."}`);
+      }
+    } catch (error) {
+      toast.error("An error occurred while saving the form.");
+      console.error("Error saving form:", error);
+    }
   };
 
   return (
